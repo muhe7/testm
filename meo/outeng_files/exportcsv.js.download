@@ -1,0 +1,44 @@
+var rdata;
+var datapath;
+var dlist;
+var filename;
+function exportcsv(data,datapath,filename){
+    this.rdata = data;
+    this.datapath = datapath;
+    this.filename = filename;
+}
+function downloadcsv(table_id, separator = ',') {
+    // Select rows from table_id
+    var rows = document.querySelectorAll('table#' + table_id + ' tr');
+    // Construct csv
+    var csv = [];
+    var row = [], cols = rows[0].querySelectorAll('td, th');
+    for (var j = 0; j < cols.length; j++) {
+        // Clean innertext to remove multiple spaces and jumpline (break csv)
+        var data = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+        // Escape double-quote with double-double-quote (see https://stackoverflow.com/questions/17808511/properly-escape-a-double-quote-in-csv)
+        data = data.replace(/"/g, '""');
+        // Push escaped string
+        row.push('"' + data + '"');
+    }
+    csv.push(row.join(separator));
+    for(var i = 0;i<rdata.length;i++){
+        row = ['"'+i+'"'];
+        for(var j = 0;j<datapath.length;j++){
+            var data = datapath[j](rdata[i]).replace(/(\r\n|\n|\r)/gm, '').replace(/(\s\s)/gm, ' ');
+            data = data.replace(/"/g, '""');
+            row.push('"' + data + '"');
+        }
+        csv.push(row.join(separator));
+    }
+    var csv_string = csv.join('\n');
+    // Download it
+    var link = document.createElement('a');
+    link.style.display = 'none';
+    link.setAttribute('target', '_blank');
+    link.setAttribute('href', 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv_string));
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
